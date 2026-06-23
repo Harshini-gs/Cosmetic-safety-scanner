@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cosmetic Safety Result</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f3f5fb;
+    color: #1f2937;
+}
+
+body.dark {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
+.container {
+    max-width: 1180px;
+    margin: auto;
+    padding: 35px 22px;
+}
+
+.header {
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    color: white;
+    padding: 35px;
+    border-radius: 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 18px 40px rgba(124,58,237,0.25);
+    position: relative;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 40px;
+}
+
+.header p {
+    margin-top: 8px;
+    opacity: 0.95;
+}
+
+.theme-btn {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-weight: bold;
+    background: rgba(255,255,255,0.18);
+    color: white;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 24px;
+}
+
+.card {
+    background: white;
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+    margin-bottom: 22px;
+    border: 1px solid #eef0f5;
+}
+
+body.dark .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f8fafc;
+}
+
+.uploaded-img {
+    width: 100%;
+    max-height: 360px;
+    object-fit: contain;
+    border-radius: 18px;
+    background: #f8fafc;
+    padding: 12px;
+}
+
+body.dark .uploaded-img {
+    background: #0f172a;
+}
+
+.verdict-banner {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.safe-banner {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.moderate-banner {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.unsafe-banner {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.alert-box {
+    background: white;
+    border-left: 8px solid #ef4444;
+    padding: 20px;
+    border-radius: 18px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+}
+
+body.dark .alert-box {
+    background: #1e293b;
+}
+
+.alert-box h2 {
+    color: #b91c1c;
+    margin-top: 0;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+.stat-box {
+    padding: 20px;
+    border-radius: 18px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.high-box {
+    background: rgba(239, 68, 68, 0.14);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.38);
+}
+
+.moderate-box {
+    background: rgba(245, 158, 11, 0.14);
+    color: #d97706;
+    border: 1px solid rgba(245, 158, 11, 0.38);
+}
+
+.safe-box {
+    background: rgba(16, 185, 129, 0.14);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.38);
+}
+
+.stat-box span {
+    display: block;
+    font-size: 34px;
+    font-weight: 800;
+    margin-top: 6px;
+}
+
+.progress-bg {
+    height: 18px;
+    background: #e5e7eb;
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+body.dark .progress-bg {
+    background: #334155;
+}
+
+.progress-fill {
+    height: 100%;
+    width: {{ safety_percent }}%;
+    background: linear-gradient(90deg, #10b981, #22c55e);
+    border-radius: 30px;
+}
+
+.chart-box {
+    max-width: 320px;
+    margin: 20px auto 0 auto;
+}
+
+.search-box {
+    width: 100%;
+    padding: 14px 16px;
+    margin: 15px 0 22px;
+    border-radius: 14px;
+    border: 1px solid #d1d5db;
+    font-size: 15px;
+    outline: none;
+}
+
+body.dark .search-box {
+    background: #0f172a;
+    color: white;
+    border: 1px solid #475569;
+}
+
+.ingredient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 18px;
+}
+
+.ingredient-card {
+    background: white;
+    padding: 18px;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+    border: 1px solid #eef0f5;
+    border-left: 7px solid #9ca3af;
+}
+
+body.dark .ingredient-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+}
+
+.high-risk {
+    border-left-color: #ef4444;
+}
+
+.moderate-risk {
+    border-left-color: #f59e0b;
+}
+
+.safe-risk {
+    border-left-color: #10b981;
+}
+
+.risk-pill {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.pill-high {
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.pill-moderate {
+    background: #fffbeb;
+    color: #b45309;
+}
+
+.pill-safe {
+    background: #ecfdf5;
+    color: #047857;
+}
+
+.alt-box {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+
+body.dark .alt-box {
+    background: #1e293b;
+    border: 1px solid #334155;
+}
+
+.text-muted {
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+body.dark .text-muted {
+    color: #cbd5e1;
+}
+
+.button-row {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.back-btn, .download-btn {
+    display: inline-block;
+    margin: 8px;
+    padding: 13px 26px;
+    border-radius: 999px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.download-btn {
+    background: #111827;
+}
+
+.back-btn {
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+}
+
+@media(max-width: 850px) {
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .header h1 {
+        font-size: 30px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+    <button class="theme-btn" onclick="toggleTheme()">🌙 Dark Mode</button>
+
+    <h1>💄 Cosmetic Safety Dashboard</h1>
+
+    <p>
+        Ingredient detection, safety scoring, risk summary,
+        skin analysis, and pregnancy safety warnings.
+    </p>
+</div>
+
+{% set danger_list = [] %}
+
+{% for item in results %}
+    {% if item.risk == 'High' %}
+        {% set _ = danger_list.append(item.ingredient) %}
+    {% endif %}
+{% endfor %}
+
+{% if danger_list|length > 0 %}
+<div class="alert-box">
+    <h2>⚠ Dangerous Ingredients Detected</h2>
+
+    <ul>
+        {% for ing in danger_list %}
+            <li>{{ ing }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if pregnancy_check and pregnancy_alerts|length > 0 %}
+<div class="alert-box">
+    <h2>🤰 Pregnancy Safety Warning</h2>
+
+    <ul>
+        {% for item in pregnancy_alerts %}
+            <li>
+                <b>{{ item.ingredient }}</b> -
+                {{ item.warning }}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="dashboard">
+
+<div class="card">
+
+    <h2>📷 Product Label</h2>
+
+    <img class="uploaded-img"
+         src="{{ url_for('static', filename='uploads/uploaded.jpg') }}">
+
+    <div class="verdict-banner
+        {% if 'SAFE' in verdict %}
+            safe-banner
+        {% elif 'MODERATE' in verdict %}
+            moderate-banner
+        {% else %}
+            unsafe-banner
+        {% endif %}">
+
+        {{ verdict }} <br>
+        <span>{{ recommendation }}</span>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2>📊 Safety Overview</h2>
+
+    <div class="stats">
+
+        <div class="stat-box high-box">
+            High Risk
+            <span>{{ risk_summary.High }}</span>
+        </div>
+
+        <div class="stat-box moderate-box">
+            Moderate
+            <span>{{ risk_summary.Moderate }}</span>
+        </div>
+
+        <div class="stat-box safe-box">
+            Safe
+            <span>{{ risk_summary.Safe }}</span>
+        </div>
+
+    </div>
+
+    <h3>🛡 Safety Percentage: {{ safety_percent }}%</h3>
+
+    <div class="progress-bg">
+        <div class="progress-fill"></div>
+    </div>
+
+    <h3>📈 Risk Score: {{ score }}</h3>
+
+    <div class="chart-box">
+        <canvas id="riskChart"></canvas>
+    </div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+    <h2>🧴 Detected Ingredients</h2>
+
+    <p class="text-muted">{{ filtered_text }}</p>
+
+</div>
+
+<div class="card">
+
+    <h2>📊 Ingredient-Level Analysis</h2>
+
+    <input type="text"
+           id="search"
+           class="search-box"
+           placeholder="Search ingredient..."
+           onkeyup="filterItems()">
+
+    <div class="ingredient-grid">
+
+        {% for item in results %}
+
+        <div class="ingredient-card ingredient-item
+            {% if item.risk == 'High' %}
+                high-risk
+            {% elif item.risk == 'Moderate' %}
+                moderate-risk
+            {% else %}
+                safe-risk
+            {% endif %}">
+
+            {% if item.risk == 'High' %}
+                <span class="risk-pill pill-high">
+                    🔴 HIGH RISK
+                </span>
+
+            {% elif item.risk == 'Moderate' %}
+                <span class="risk-pill pill-moderate">
+                    🟡 MODERATE
+                </span>
+
+            {% else %}
+                <span class="risk-pill pill-safe">
+                    🟢 SAFE
+                </span>
+            {% endif %}
+
+            <h3>{{ item.ingredient }}</h3>
+            <p><b>Category:</b> {{ item.category }}</p>
+
+            <p><b>Function:</b> {{ item.function }}</p>
+
+            <p><b>Side Effects:</b> {{ item.side_effects }}</p>
+
+            <div class="alt-box">
+                <b>💡 Safer Suggestion:</b><br>
+                {{ item.alternative }}
+            </div>
+
+            <div class="alt-box">
+                <b>👤 Skin Type Warning:</b><br>
+                {{ item.personal_warning }}
+            </div>
+
+            {% if item.pregnancy_warning %}
+            <div class="alt-box">
+                <b>🤰 Pregnancy Warning:</b><br>
+                {{ item.pregnancy_warning }}
+            </div>
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <h2>🔍 OCR Extracted Text</h2>
+
+    <p class="text-muted">{{ extracted_text }}</p>
+
+</div>
+
+<div class="button-row">
+
+    <button class="download-btn"
+            onclick="window.print()">
+        ⬇ Download Report
+    </button>
+
+    <a class="back-btn" href="/">
+        Scan Again
+    </a>
+
+</div>
+
+</div>
+
+<script>
+function filterItems() {
+    let input = document.getElementById("search").value.toLowerCase();
+
+    let items = document.getElementsByClassName("ingredient-item");
+
+    for (let i = 0; i < items.length; i++) {
+
+        let text = items[i].innerText.toLowerCase();
+
+        if (text.includes(input)) {
+            items[i].style.display = "block";
+        } else {
+            items[i].style.display = "none";
+        }
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+}
+
+const ctx = document.getElementById('riskChart');
+
+new Chart(ctx, {
+    type: 'doughnut',
+
+    data: {
+        labels: ['High Risk', 'Moderate', 'Safe'],
+
+        datasets: [{
+            data: [
+                {{ risk_summary.High }},
+                {{ risk_summary.Moderate }},
+                {{ risk_summary.Safe }}
+            ],
+
+            backgroundColor: [
+                '#ef4444',
+                '#f59e0b',
+                '#10b981'
+            ],
+
+            borderWidth: 2
+        }]
+    },
+
+    options: {
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cosmetic Scanner</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    text-align: center;
+}
+
+.container {
+    margin-top: 60px;
+}
+
+.upload-box {
+    margin-top: 30px;
+    padding: 35px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.15);
+    display: inline-block;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+select, input {
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    margin: 12px;
+}
+
+button {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 25px;
+    background: #ff7eb3;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#preview {
+    display: none;
+    margin: 20px auto;
+    max-width: 260px;
+    border-radius: 14px;
+}
+
+#loading {
+    display: none;
+    margin-top: 25px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.checkbox-box {
+    margin: 15px;
+    font-size: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>💄 Cosmetic Safety Scanner</h1>
+    <p>Upload a product label and get personalized ingredient safety analysis</p>
+
+    <div class="upload-box">
+        <form action="/scan" method="POST" enctype="multipart/form-data" onsubmit="showLoading()">
+
+            <label><b>Select Skin Type:</b></label><br>
+            <select name="skin_type" required>
+                <option value="normal">Normal</option>
+                <option value="oily">Oily</option>
+                <option value="dry">Dry</option>
+                <option value="sensitive">Sensitive</option>
+                <option value="combination">Combination</option>
+            </select>
+
+            <br>
+
+            <div class="checkbox-box">
+                <label>
+                    <input type="checkbox" name="pregnancy_check" value="yes">
+                    Enable Pregnancy Safety Check
+                </label>
+            </div>
+
+            <input type="file" name="image" accept="image/*" required onchange="previewImage(event)">
+            <br>
+
+            <img id="preview">
+
+            <br>
+            <button type="submit">🔍 Scan Now</button>
+        </form>
+    </div>
+
+    <div id="loading">⏳ Scanning ingredients...</div>
+</div>
+
+<script>
+function previewImage(event) {
+    const preview = document.getElementById("preview");
+    preview.src = URL.createObjectURL(event.target.files[0]);
+    preview.style.display = "block";
+}
+
+function showLoading() {
+    document.getElementById("loading").style.display = "block";
+}
+</script>
+
+</body>
+</html>
